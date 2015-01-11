@@ -47,7 +47,7 @@ function wp_stripe_form() {
         <div class="wp-stripe-notification wp-stripe-failure payment-errors" style="display:none"></div>
 
         <div class="stripe-row">
-                <input type="text" name="wp_stripe_name" class="wp-stripe-name" placeholder="<?php _e('Name', 'wp-stripe'); ?> *" value="<?php echo $name; ?>" autofocus required />
+                <input type="text" name="wp_stripe_name" class="wp-stripe-name" placeholder="<?php _e('Name', 'wp-stripe'); ?> *" value="<?php echo $name; ?>" required />
         </div>
 
         <div class="stripe-row">
