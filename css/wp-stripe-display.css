@@ -342,3 +342,19 @@ input[type=file]:focus, input[type=checkbox]:focus, select:focus {
         box-shadow: none;
         outline: 1px dotted #666;
 }
+
+
+//Multiple campaigns
+form#wp-stripe-payment-form .stripe-row.campaign .title {
+	font-weight: bold;
+}
+
+form#wp-stripe-payment-form .stripe-row.campaign label {
+	padding: 2px 0px 2px 5px;
+	display: block;
+	color: #000000;
+	cursor: pointer;
+}
+form#wp-stripe-payment-form .stripe-row.campaign label input[type="radio"] {
+	margin-right: 5px;
+}

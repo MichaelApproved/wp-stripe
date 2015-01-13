@@ -13,8 +13,61 @@ function wp_stripe_form() {
 
     ob_start();
 
-	$campaignId = isset($_GET['campaign']) && is_numeric($_GET['campaign']) ? $_GET['campaign'] : "";
+	/*
+	 * We're allowing for 3 options for campaigns.
+	 * 1 - no campaign - donations go to general fund.
+	 * 2 - 1 campaign id - donations go to that specific campaign.
+	 * 3 - multiple comma delimited campaign ids - creates a dropdown of campaigns to select from.
+	 */
+	$campaign_html = '';
+	if (isset($_GET['campaign'])) {
+		//Do we have one campaign id or possibly several?
+		if (is_numeric($_GET['campaign'])) {
+			$campaign_html = '<input type="hidden" name="campaignId" value="' . $_GET['campaign'] . '" />';
+		}else{
+			$campaign_ids = explode(',', $_GET['campaign']);
+			
+			//Make sure we only have numeric values
+			$campaign_ids = array_filter($campaign_ids, "is_numeric");
+			
+			
+			if (count($campaign_ids) > 0) {
+				//Lookup all the campaign posts so we can get the titles
+				$args = array(
+					'post_type' => 'wp-stripe-campaigns',
+					'post__in' => $campaign_ids,
+				);
+				
+				$campaign_posts = new WP_Query($args);
+				$campaign_lookup = [];
+				while ($campaign_posts->have_posts()) {
+					$campaign_posts->the_post();
+					
+					//Build an associative array so the title lookup will be easier
+					$campaign_lookup[get_the_ID()] = get_the_title();
+				}
+				wp_reset_query();
 
+				//Get the default campaign, if there is one.
+				if (isset($_GET['campaign-default']) && is_numeric($_GET['campaign-default'])) {
+					$campaign_default = $_GET['campaign-default'];
+				}else{
+					$campaign_default = 0;
+				}
+				
+				$campaign_html .= '<div class="stripe-row campaign">';
+				$campaign_html .= '<span class="stripe-row-title">My donation should go to:</span>';
+				foreach ($campaign_ids as $campaign_id) {
+					if (isset($campaign_lookup[$campaign_id])) {
+						$default_selected = ($campaign_id === $campaign_default) ? 'checked' : '';
+						$campaign_html .= "<label for='campaignId_{$campaign_id}'><input type='radio' name='campaignId' id='campaignId_{$campaign_id}' value='{$campaign_id}' {$default_selected} />" . htmlspecialchars($campaign_lookup[$campaign_id], ENT_QUOTES | ENT_IGNORE, 'UTF-8') . "</label>";
+					}
+				}
+				
+				$campaign_html .= '</div>';
+			}
+		}
+	}
 	
 	if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$name = $_POST['wp_stripe_name'];
@@ -38,7 +91,6 @@ function wp_stripe_form() {
 
     <form id="wp-stripe-payment-form">
 
-	<input type="hidden" name="campaignId" value="<?php echo $campaignId; ?>" />
     <input type="hidden" name="action" value="wp_stripe_charge_initiate" />
     <input type="hidden" name="nonce" value="<?php echo wp_create_nonce( 'wp-stripe-nonce' ); ?>" />
 
@@ -57,7 +109,7 @@ function wp_stripe_form() {
         <div class="stripe-row">
                 <textarea name="wp_stripe_comment" class="wp-stripe-comment" placeholder="<?php _e('Optional public comment', 'wp-stripe'); ?>"></textarea>
         </div>
-
+		<?php echo $campaign_html ?>
     </div>
 
     <div class="wp-stripe-card">
