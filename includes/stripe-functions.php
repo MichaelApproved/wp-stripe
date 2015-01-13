@@ -36,12 +36,13 @@ add_shortcode('wp-stripe', 'wp_stripe_shortcode');
 
 function wp_stripe_embedded_shortcode($atts) {
 	extract(shortcode_atts(array(
-				'campaign' => ''
+				'campaign' => '',
+				'campaign_default' => '',
 					), $atts));
 
 	$options = get_option('wp_stripe_options');
 
-	$settings = '?keepThis=true&TB_iframe=true&height=580&width=400&campaign=' . $campaign;
+	$settings = "?keepThis=true&amp;TB_iframe=true&amp;height=580&amp;width=400&amp;campaign={$campaign}&amp;campaign-default={$campaign_default}";
 	$path = WP_STRIPE_PATH . '/includes/stripe-iframe.php' . $settings;
 	$count = 1;
 
